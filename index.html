@@ -100,7 +100,7 @@
     <div class="container">
         <ul class="todo-list" id="todo-list"></ul>
         <div id="controls">
-            <input id="new-item" type="text" placeholder="Add new item...">
+            <input id="new-item" type="text" placeholder="Add new item..." onkeypress="handleKeyPress(event)">
             <button onclick="addNewItem()">Add</button>
             <button onclick="clearAll()">Clear All</button>
         </div>
@@ -183,6 +183,12 @@
                 todoItems.push(input.value);
                 input.value = ''; // clear the input
                 updateList();
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                addNewItem();
             }
         }
 
