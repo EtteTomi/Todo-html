@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Todo List</title>
+    <style>
+        body {
+            background-color: #282c34;
+            color: #FFFFFF;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .todo-list {
+            width: 600px;
+            list-style: none;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #21252b;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .todo-item {
+            padding: 10px;
+            border-bottom: 1px solid #abb2bf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            /* Prevent text selection */
+            -webkit-user-drag: none;
+            /* Prevent drag */
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.5);
+        }
+
+        .done-item span {
+            color: grey;
+        }
+
+        /* Styles for the controls */
+        #controls {
+            width: 600px;
+            background-color: #21252b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        #controls input,
+        #controls button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        #controls input {
+            width: 60%;
+            background-color: #282c34;
+            color: white;
+        }
+
+        #controls button {
+            width: 15%;
+            margin-left: 10px;
+            background-color: #61dafb;
+            color: black;
+            cursor: pointer;
+        }
+
+        #controls button:hover {
+            background-color: #bbeeff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <ul class="todo-list" id="todo-list"></ul>
+        <div id="controls">
+            <input id="new-item" type="text" placeholder="Add new item...">
+            <button onclick="addNewItem()">Add</button>
+            <button onclick="clearAll()">Clear All</button>
+        </div>
+    </div>
+
+    <script>
+        // Load data from localStorage
+        let todoItems = JSON.parse(localStorage.getItem('todoItems')) || ["Eat banana", "Drink water"];
+        let doneItems = JSON.parse(localStorage.getItem('doneItems')) || ["Sleep"];
+
+        function updateList() {
+            let list = document.getElementById('todo-list');
+            // Clear the list
+            list.innerHTML = '';
+
+            // Write how many in todo list
+            let listItem = document.createElement('li');
+            listItem.className = 'todo-item';
+            listItem.innerHTML = `<span>Left: ${todoItems.length}</span>`;
+            list.appendChild(listItem);
+
+            // Append the todo items
+            todoItems.forEach((item, index) => {
+                let listItem = document.createElement('li');
+                listItem.className = 'todo-item';
+                listItem.innerHTML = `<input type="checkbox" onchange="markAsDone(${index})"><span>${item}</span>`;
+                list.appendChild(listItem);
+            });
+
+            // Append a separator
+            let separator = document.createElement('li');
+            separator.innerHTML = '<hr>';
+            list.appendChild(separator);
+
+            // Write how many in done list
+            listItem = document.createElement('li');
+            listItem.className = 'todo-item';
+            listItem.innerHTML = `<span>Done: ${doneItems.length}</span>`;
+            list.appendChild(listItem);
+
+            // Append the done items
+            doneItems.forEach((item, index) => {
+                let listItem = document.createElement('li');
+                listItem.className = 'todo-item done-item';
+                listItem.innerHTML = `<input type="checkbox" checked onchange="markAsUndone(${index})"><span>${item}</span>`;
+                list.appendChild(listItem);
+            });
+
+            // Save data to localStorage
+            localStorage.setItem('todoItems', JSON.stringify(todoItems));
+            localStorage.setItem('doneItems', JSON.stringify(doneItems));
+        }
+
+        function markAsDone(index) {
+            // Move the item from todoItems to doneItems
+            doneItems.push(todoItems[index]);
+            todoItems.splice(index, 1);
+
+            // Update the list
+            updateList();
+        }
+
+        function markAsUndone(index) {
+            // Move the item from doneItems to todoItems
+            todoItems.push(doneItems[index]);
+            doneItems.splice(index, 1);
+
+            // Update the list
+            updateList();
+        }
+
+        // Update the list for the first time
+        updateList();
+
+
+        // Add and clear new items
+        function addNewItem() {
+            let input = document.getElementById('new-item');
+            if (input.value.trim() !== '') {
+                todoItems.push(input.value);
+                input.value = ''; // clear the input
+                updateList();
+            }
+        }
+
+        function clearAll() {
+            if (window.confirm("Are you sure you want to clear all items?")) {
+                todoItems = [];
+                doneItems = [];
+                updateList();
+            }
+        }
+    </script>
+</body>
+
+</html>
