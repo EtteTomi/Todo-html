@@ -184,6 +184,8 @@
                 input.value = ''; // clear the input
                 updateList();
             }
+
+            event.preventDefault(); // Prevent form submission
         }
 
         function handleKeyPress(event) {
