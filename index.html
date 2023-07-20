@@ -101,12 +101,14 @@
         <ul class="todo-list" id="todo-list"></ul>
         <div id="controls">
             <input id="new-item" type="text" placeholder="Add new item..." onkeypress="handleKeyPress(event)">
-            <button onclick="addNewItem()">Add</button>
+            <button id="clearBTN" onclick="toggleClear()">Clear</button>
             <button onclick="clearAll()">Clear All</button>
         </div>
     </div>
 
     <script>
+        var clearOngoing = false;
+
         // Load data from localStorage
         let todoItems = JSON.parse(localStorage.getItem('todoItems')) || ["Eat banana", "Drink water"];
         let doneItems = JSON.parse(localStorage.getItem('doneItems')) || ["Sleep"];
@@ -155,8 +157,11 @@
         }
 
         function markAsDone(index) {
-            // Move the item from todoItems to doneItems
-            doneItems.push(todoItems[index]);
+            if (!clearOngoing) {
+                // Move the item from todoItems to doneItems
+                doneItems.push(todoItems[index]);
+            }
+
             todoItems.splice(index, 1);
 
             // Update the list
@@ -164,8 +169,11 @@
         }
 
         function markAsUndone(index) {
-            // Move the item from doneItems to todoItems
-            todoItems.push(doneItems[index]);
+            if (!clearOngoing) {
+                // Move the item from doneItems to todoItems
+                todoItems.push(doneItems[index]);
+            }
+
             doneItems.splice(index, 1);
 
             // Update the list
@@ -199,6 +207,19 @@
                 todoItems = [];
                 doneItems = [];
                 updateList();
+            }
+        }
+
+        function toggleClear() {
+            var toggleBTN = document.getElementById("clearBTN");
+            clearOngoing = !clearOngoing; // Toggle the clearOngoing variable
+
+            if (clearOngoing) {
+                // The button is now ON
+                toggleBTN.style.backgroundColor = "#ff6347"; // Use any red color you like
+            } else {
+                // The button is now OFF
+                toggleBTN.style.backgroundColor = "#61dafb";
             }
         }
     </script>
