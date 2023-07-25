@@ -30,7 +30,17 @@
             padding: 20px;
             border-radius: 10px;
             background-color: #21252b;
-            max-height: 60vh;
+            height: 50vh;
+            overflow-y: auto;
+        }
+
+        .done-list {
+            width: 600px;
+            list-style: none;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #21252b;
+            height: 10vh;
             overflow-y: auto;
         }
 
@@ -115,7 +125,7 @@
         <p id="todo-count"></p>
         <ul class="todo-list" id="todo-list"></ul>
         <p id="done-count"></p>
-        <ul class="todo-list" id="done-list"></ul>
+        <ul class="done-list" id="done-list"></ul>
         <div id="controls">
             <input id="new-item" type="text" placeholder="Add new item..." onkeypress="handleKeyPress(event)">
             <button id="clearBTN" onclick="toggleClear()">Clear</button>
