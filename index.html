@@ -42,8 +42,12 @@
             justify-content: space-between;
             user-select: none;
             /* Prevent text selection */
-            -webkit-user-drag: none;
-            /* Prevent drag */
+            order: 1;
+        }
+
+        .handle {
+            cursor: move;
+            order: 2;
         }
 
         .todo-item:last-child {
@@ -106,6 +110,8 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
     <script>
         var clearOngoing = false;
 
@@ -128,7 +134,7 @@
             todoItems.forEach((item, index) => {
                 let listItem = document.createElement('li');
                 listItem.className = 'todo-item';
-                listItem.innerHTML = `<input type="checkbox" onchange="markAsDone(${index})"><span>${item}</span>`;
+                listItem.innerHTML = `<input type="checkbox" onchange="markAsDone(${index})"><span>${item}</span><span class="handle">☰</span>`;
                 list.appendChild(listItem);
             });
 
@@ -147,13 +153,35 @@
             doneItems.forEach((item, index) => {
                 let listItem = document.createElement('li');
                 listItem.className = 'todo-item done-item';
-                listItem.innerHTML = `<input type="checkbox" checked onchange="markAsUndone(${index})"><span>${item}</span>`;
+                listItem.innerHTML = `<input type="checkbox" checked onchange="markAsUndone(${index})"><span>${item}</span><span class="handle">☰</span>`;
                 list.appendChild(listItem);
             });
 
             // Save data to localStorage
             localStorage.setItem('todoItems', JSON.stringify(todoItems));
             localStorage.setItem('doneItems', JSON.stringify(doneItems));
+
+            // Create new Sortable instance
+            new Sortable(list, {
+                handle: '.handle',  // Handle's class
+                animation: 150,
+                onEnd: function (evt) {
+                    var item;
+
+                    // Update todoItems and doneItems arrays based on new order
+                    if (evt.oldIndex < todoItems.length) {
+                        item = todoItems.splice(evt.oldIndex, 1)[0];
+                        todoItems.splice(evt.newIndex, 0, item);
+                    } else {
+                        item = doneItems.splice(evt.oldIndex - todoItems.length - 2, 1)[0];
+                        doneItems.splice(evt.newIndex - todoItems.length - 2, 0, item);
+                    }
+
+                    // Save new order to localStorage
+                    localStorage.setItem('todoItems', JSON.stringify(todoItems));
+                    localStorage.setItem('doneItems', JSON.stringify(doneItems));
+                },
+            });
         }
 
         function markAsDone(index) {
