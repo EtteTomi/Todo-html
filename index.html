@@ -97,160 +97,166 @@
         #controls button:hover {
             background-color: #bbeeff;
         }
+
+        #todo-count,
+        #done-count {
+            margin-bottom: -20px; 
+            padding: 10px;
+            background-color: #21252b;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <p id="todo-count"></p>
         <ul class="todo-list" id="todo-list"></ul>
+        <p id="done-count"></p>
+        <ul class="todo-list" id="done-list"></ul>
         <div id="controls">
             <input id="new-item" type="text" placeholder="Add new item..." onkeypress="handleKeyPress(event)">
             <button id="clearBTN" onclick="toggleClear()">Clear</button>
             <button onclick="clearAll()">Clear All</button>
         </div>
     </div>
+</body>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-    <script>
-        var clearOngoing = false;
+<script>
+    var clearOngoing = false;
 
-        // Load data from localStorage
-        let todoItems = JSON.parse(localStorage.getItem('todoItems')) || ["Eat banana", "Drink water"];
-        let doneItems = JSON.parse(localStorage.getItem('doneItems')) || ["Sleep"];
+    // Load data from localStorage
+    let todoItems = JSON.parse(localStorage.getItem('todoItems')) || ["Eat banana", "Drink water"];
+    let doneItems = JSON.parse(localStorage.getItem('doneItems')) || ["Sleep"];
 
-        function updateList() {
-            let list = document.getElementById('todo-list');
-            // Clear the list
-            list.innerHTML = '';
+    function updateList() {
+        let todoList = document.getElementById('todo-list');
+        let doneList = document.getElementById('done-list');
 
-            // Write how many in todo list
+        // Clear the lists
+        todoList.innerHTML = '';
+        doneList.innerHTML = '';
+
+        // Write how many in todo list
+        document.getElementById('todo-count').innerText = `Left: ${todoItems.length}`;
+
+        // Append the todo items
+        todoItems.forEach((item, index) => {
             let listItem = document.createElement('li');
             listItem.className = 'todo-item';
-            listItem.innerHTML = `<span>Left: ${todoItems.length}</span>`;
-            list.appendChild(listItem);
+            listItem.innerHTML = `<input type="checkbox" onchange="markAsDone(${index})"><span>${item}</span><span class="handle">☰</span>`;
+            todoList.appendChild(listItem);
+        });
 
-            // Append the todo items
-            todoItems.forEach((item, index) => {
-                let listItem = document.createElement('li');
-                listItem.className = 'todo-item';
-                listItem.innerHTML = `<input type="checkbox" onchange="markAsDone(${index})"><span>${item}</span><span class="handle">☰</span>`;
-                list.appendChild(listItem);
-            });
+        // Write how many in done list
+        document.getElementById('done-count').innerText = `Done: ${doneItems.length}`;
 
-            // Append a separator
-            let separator = document.createElement('li');
-            separator.innerHTML = '<hr>';
-            list.appendChild(separator);
+        // Append the done items
+        doneItems.forEach((item, index) => {
+            let listItem = document.createElement('li');
+            listItem.className = 'todo-item done-item';
+            listItem.innerHTML = `<input type="checkbox" checked onchange="markAsUndone(${index})"><span>${item}</span><span class="handle">☰</span>`;
+            doneList.appendChild(listItem);
+        });
 
-            // Write how many in done list
-            listItem = document.createElement('li');
-            listItem.className = 'todo-item';
-            listItem.innerHTML = `<span>Done: ${doneItems.length}</span>`;
-            list.appendChild(listItem);
+        // Save data to localStorage
+        localStorage.setItem('todoItems', JSON.stringify(todoItems));
+        localStorage.setItem('doneItems', JSON.stringify(doneItems));
 
-            // Append the done items
-            doneItems.forEach((item, index) => {
-                let listItem = document.createElement('li');
-                listItem.className = 'todo-item done-item';
-                listItem.innerHTML = `<input type="checkbox" checked onchange="markAsUndone(${index})"><span>${item}</span><span class="handle">☰</span>`;
-                list.appendChild(listItem);
-            });
+        // Create new Sortable instance for todo-list
+        new Sortable(todoList, {
+            handle: '.handle',
+            animation: 150,
+            onEnd: function (evt) {
+                var item = todoItems.splice(evt.oldIndex, 1)[0];
+                todoItems.splice(evt.newIndex, 0, item);
+                localStorage.setItem('todoItems', JSON.stringify(todoItems));
+            },
+        });
 
-            // Save data to localStorage
-            localStorage.setItem('todoItems', JSON.stringify(todoItems));
-            localStorage.setItem('doneItems', JSON.stringify(doneItems));
+        // Create new Sortable instance for done-list
+        new Sortable(doneList, {
+            handle: '.handle',
+            animation: 150,
+            onEnd: function (evt) {
+                var item = doneItems.splice(evt.oldIndex, 1)[0];
+                doneItems.splice(evt.newIndex, 0, item);
+                localStorage.setItem('doneItems', JSON.stringify(doneItems));
+            },
+        });
+    }
 
-            // Create new Sortable instance
-            new Sortable(list, {
-                handle: '.handle',  // Handle's class
-                animation: 150,
-                onEnd: function (evt) {
-                    var item;
-
-                    // Update todoItems and doneItems arrays based on new order
-                    if (evt.oldIndex < todoItems.length) {
-                        item = todoItems.splice(evt.oldIndex, 1)[0];
-                        todoItems.splice(evt.newIndex, 0, item);
-                    } else {
-                        item = doneItems.splice(evt.oldIndex - todoItems.length - 2, 1)[0];
-                        doneItems.splice(evt.newIndex - todoItems.length - 2, 0, item);
-                    }
-
-                    // Save new order to localStorage
-                    localStorage.setItem('todoItems', JSON.stringify(todoItems));
-                    localStorage.setItem('doneItems', JSON.stringify(doneItems));
-                },
-            });
+    function markAsDone(index) {
+        if (!clearOngoing) {
+            // Move the item from todoItems to doneItems
+            doneItems.push(todoItems[index]);
         }
 
-        function markAsDone(index) {
-            if (!clearOngoing) {
-                // Move the item from todoItems to doneItems
-                doneItems.push(todoItems[index]);
-            }
+        todoItems.splice(index, 1);
 
-            todoItems.splice(index, 1);
-
-            // Update the list
-            updateList();
-        }
-
-        function markAsUndone(index) {
-            if (!clearOngoing) {
-                // Move the item from doneItems to todoItems
-                todoItems.push(doneItems[index]);
-            }
-
-            doneItems.splice(index, 1);
-
-            // Update the list
-            updateList();
-        }
-
-        // Update the list for the first time
+        // Update the list
         updateList();
+    }
 
-
-        // Add and clear new items
-        function addNewItem() {
-            let input = document.getElementById('new-item');
-            if (input.value.trim() !== '') {
-                todoItems.push(input.value);
-                input.value = ''; // clear the input
-                updateList();
-            }
-
-            event.preventDefault(); // Prevent form submission
+    function markAsUndone(index) {
+        if (!clearOngoing) {
+            // Move the item from doneItems to todoItems
+            todoItems.push(doneItems[index]);
         }
 
-        function handleKeyPress(event) {
-            if (event.key === "Enter") {
-                addNewItem();
-            }
+        doneItems.splice(index, 1);
+
+        // Update the list
+        updateList();
+    }
+
+    // Update the list for the first time
+    updateList();
+
+
+    // Add and clear new items
+    function addNewItem() {
+        let input = document.getElementById('new-item');
+        if (input.value.trim() !== '') {
+            todoItems.push(input.value);
+            input.value = ''; // clear the input
+            updateList();
         }
 
-        function clearAll() {
-            if (window.confirm("Are you sure you want to clear all items?")) {
-                todoItems = [];
-                doneItems = [];
-                updateList();
-            }
-        }
+        event.preventDefault(); // Prevent form submission
+    }
 
-        function toggleClear() {
-            var toggleBTN = document.getElementById("clearBTN");
-            clearOngoing = !clearOngoing; // Toggle the clearOngoing variable
-
-            if (clearOngoing) {
-                // The button is now ON
-                toggleBTN.style.backgroundColor = "#ff6347"; // Use any red color you like
-            } else {
-                // The button is now OFF
-                toggleBTN.style.backgroundColor = "#61dafb";
-            }
+    function handleKeyPress(event) {
+        if (event.key === "Enter") {
+            addNewItem();
         }
-    </script>
+    }
+
+    function clearAll() {
+        if (window.confirm("Are you sure you want to clear all items?")) {
+            todoItems = [];
+            doneItems = [];
+            updateList();
+        }
+    }
+
+    function toggleClear() {
+        var toggleBTN = document.getElementById("clearBTN");
+        clearOngoing = !clearOngoing; // Toggle the clearOngoing variable
+
+        if (clearOngoing) {
+            // The button is now ON
+            toggleBTN.style.backgroundColor = "#ff6347"; // Use any red color you like
+        } else {
+            // The button is now OFF
+            toggleBTN.style.backgroundColor = "#61dafb";
+        }
+    }
+</script>
 </body>
 
 </html>
