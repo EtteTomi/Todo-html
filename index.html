@@ -231,20 +231,27 @@
 
 
     // Add and clear new items
-    function addNewItem() {
+    function addNewItem(firstItem = false) {
         let input = document.getElementById('new-item');
         if (input.value.trim() !== '') {
-            todoItems.push(input.value);
+            if (firstItem) {
+                todoItems.unshift(input.value); // add to the beginning
+            } else {
+                todoItems.push(input.value); // add to the end
+            }
             input.value = ''; // clear the input
             updateList();
         }
-
         event.preventDefault(); // Prevent form submission
     }
 
     function handleKeyPress(event) {
         if (event.key === "Enter") {
             addNewItem();
+        }
+        else if (event.key === "\n") // ctrl + enter
+        {
+            addNewItem(true);
         }
     }
 
